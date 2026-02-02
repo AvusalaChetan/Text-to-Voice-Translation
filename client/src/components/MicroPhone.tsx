@@ -4,9 +4,11 @@ import {COLORS} from "../const/colors";
 const MicroPhone = ({
   isListening,
   setIsListening,
+  onclick,
 }: {
   isListening: boolean;
   setIsListening: React.Dispatch<React.SetStateAction<boolean>>;
+  onclick: () => void;
 }): JSX.Element => {
   return (
     <>
@@ -50,7 +52,10 @@ const MicroPhone = ({
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = "scale(1)";
           }}
-          onClick={() => setIsListening(!isListening)}
+          onClick={() => {
+            setIsListening(!isListening);
+            onclick();
+          }}
         >
           🎤
         </div>

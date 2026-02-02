@@ -1,5 +1,5 @@
 import {COLORS} from "../const/colors";
-import {LANGUAGES} from "../const/langs";
+import {languages} from "../const/langs";
 
 type SelectLangProps = {
   sourceLanguage: string;
@@ -49,6 +49,7 @@ const SelectLang = ({
       padding-right: 32px;
     }
   `;
+  console.log(sourceLanguage,targetLanguage)
 
   return (
     <>
@@ -73,9 +74,9 @@ const SelectLang = ({
           <option value="" disabled>
             Select Source Language
           </option>
-          {LANGUAGES.map((lang) => (
-            <option key={lang} value={lang}>
-              {lang}
+          {languages.map((lang) => (
+            <option key={lang.value} value={lang.value}>
+              {lang.label} ({lang.value})
             </option>
           ))}
         </select>
@@ -101,6 +102,7 @@ const SelectLang = ({
           }}
           aria-label="Swap languages"
         >
+          
           <svg
             width="24"
             height="24"
@@ -131,9 +133,9 @@ const SelectLang = ({
           <option value="" className="text-left ">
             Select Target Language
           </option>
-          {LANGUAGES.map((lang) => (
-            <option key={lang} value={lang} className="text-left ">
-              {lang}
+          {languages.map((lang) => (
+            <option key={lang.value} value={lang.value} className="text-left ">
+              {lang.label} ({lang.value})
             </option>
           ))}
         </select>
