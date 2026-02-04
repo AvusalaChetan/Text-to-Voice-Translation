@@ -1,14 +1,13 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import speech from "@google-cloud/speech";
 import express from "express";
-import {createServer} from "http";
-import type {Socket} from "socket.io";
-import {Server} from "socket.io";
-import {AUDIO_MESSAGE, TRANSCRIPT} from "./const/event.js";
-import {GoogleGenAI} from "@google/genai";
-import {LingoDotDevEngine} from "lingo.dev/sdk";
-import {translate} from './translate.js'
+import { createServer } from "http";
+import type { Socket } from "socket.io";
+import { Server } from "socket.io";
+import { ERROR_MESSAGE, TEXT, TRANSCRIPT } from "./const/event.js";
+import { translate } from "./translate.js";
 
 const app = express();
 
@@ -21,52 +20,36 @@ const io = new Server(server, {
   },
 });
 
-if (!process.env.GEMINI_API_KEY)
-  throw new Error("GEMINI_API_KEY is not set in .env file");
-
-const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
+const client = new speech.SpeechClient();
 
 io.on("connection", (socket: Socket) => {
   console.log("connected", socket.id);
 
-  socket.on(AUDIO_MESSAGE, async (payload) => {
-    const {buffer, mimeType, sourceLanguage, targetLanguage} = payload;
-    console.log(sourceLanguage,targetLanguage)
-
-    const prompt = `Transcribe this audio in ${sourceLanguage}. Return only the text.`;
-
+  socket.on(TEXT, async (payload) => {
+    const {text, sourceLanguage, targetLanguage} = payload;
+    
+    console.log(payload)
     try {
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                inlineData: {
-                  mimeType,
-                  data: Buffer.from(buffer).toString("base64"),
-                },
-              },
-              {text: prompt},
-            ],
-          },
-        ],
-      });
-
-      // Access the text from candidates
-      const text = response?.candidates?.[0]?.content?.parts?.[0]?.text;
-      console.log("Transcribed text:", text);
-
-      // lingo.dev sdk is used to translate
-      if (text) {
-        const translatedText = await translate(text, sourceLanguage, targetLanguage);
+      if(!text ||!sourceLanguage||!targetLanguage) 
+          socket.emit(ERROR_MESSAGE, {message: "text or sourceLanguage or targetLanguage is missing "});
+        
+      if (text && text.trim()) {
+        const translatedText = await translate(
+          text,
+          sourceLanguage,
+          targetLanguage,
+        );
         console.log("Translated text:", translatedText);
         socket.emit(TRANSCRIPT, {transcript: translatedText});
+      } else {
+        console.log('error no text ')
+        socket.emit(ERROR_MESSAGE, {message: "No text to translate"});
       }
     } catch (error) {
       console.error("Error:", error);
-      socket.emit("error", {message: "Transcription failed"});
+      socket.emit("error", {
+        message: "Processing failed: " + (error as Error).message,
+      });
     }
   });
 

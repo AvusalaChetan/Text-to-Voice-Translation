@@ -1,3 +1,4 @@
+import type {JSX} from "@emotion/react/jsx-runtime";
 import {COLORS} from "../const/colors";
 import {languages} from "../const/langs";
 
@@ -13,7 +14,7 @@ const SelectLang = ({
   setSourceLanguage,
   targetLanguage,
   setTargetLanguage,
-}: SelectLangProps) => {
+}: SelectLangProps): JSX.Element => {
   const selectStyles = `
     select {
       color: white;
@@ -49,13 +50,19 @@ const SelectLang = ({
       padding-right: 32px;
     }
   `;
-  console.log(sourceLanguage,targetLanguage)
+
+  const selectSourceLang = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+    setSourceLanguage(e.target.value);
+  };
+  const selectTargetLang = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+    setTargetLanguage(e.target.value);
+  };
 
   return (
     <>
       <style>{selectStyles}</style>
       <div
-        className="flex items-center gap-5 p-6 border-2 rounded-lg w-full max-w-xl transition-all duration-300"
+        className="flex flex-col sm:flex-row items-center gap-3 sm:gap-5 p-4 sm:p-6 border-2 rounded-lg w-full transition-all duration-300"
         style={{
           borderColor: COLORS.border.primary,
           backgroundColor: "rgba(0, 212, 255, 0.05)",
@@ -64,25 +71,25 @@ const SelectLang = ({
       >
         <select
           value={sourceLanguage}
-          onChange={(e) => setSourceLanguage(e.target.value)}
-          className="flex-1 px-4 py-3 rounded transition-all duration-200 hover:bg-opacity-10 focus:bg-opacity-20"
+          onChange={selectSourceLang}
+          className="w-full sm:flex-1 px-4 py-3 rounded transition-all duration-200 hover:bg-opacity-10 focus:bg-opacity-20"
           style={{
             color: COLORS.text.primary,
             backgroundColor: "rgba(0, 212, 255, 0.1)",
           }}
         >
           <option value="" disabled>
-            Select Source Language
+            English (Source)
           </option>
           {languages.map((lang) => (
             <option key={lang.value} value={lang.value}>
-              {lang.label} ({lang.value})
+              {lang.label}
             </option>
           ))}
         </select>
 
         <button
-          className="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer font-bold transition-all duration-300 hover:scale-110 active:scale-95 flex-shrink-0"
+          className="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95 flex-shrink-0"
           style={{
             backgroundColor: COLORS.accent.cyan,
             color: COLORS.background.primary,
@@ -102,40 +109,36 @@ const SelectLang = ({
           }}
           aria-label="Swap languages"
         >
-          
           <svg
-            width="24"
-            height="24"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            rotate="90"
           >
-            <line x1="1" y1="4" x2="15" y2="4" />
-            <polyline points="10 10 15 4 20 10" />
-            <line x1="23" y1="20" x2="9" y2="20" />
-            <polyline points="14 14 9 20 4 14" />
+            <path d="M7 16V4M7 4L3 8M7 4L11 8" />
+            <path d="M17 8V20M17 20L21 16M17 20L13 16" />
           </svg>
         </button>
 
         <select
           value={targetLanguage}
-          onChange={(e) => setTargetLanguage(e.target.value)}
-          className="flex-1 px-4 py-3 rounded  transition-all duration-200 hover:bg-opacity-10 focus:bg-opacity-20 text-right"
+          onChange={selectTargetLang}
+          className="w-full sm:flex-1 px-4 py-3 rounded transition-all duration-200 hover:bg-opacity-10 focus:bg-opacity-20"
           style={{
             color: COLORS.text.primary,
             backgroundColor: "rgba(0, 212, 255, 0.1)",
           }}
         >
-          <option value="" className="text-left ">
-            Select Target Language
+          <option value="" className="text-left">
+            Hindi (Target)
           </option>
           {languages.map((lang) => (
             <option key={lang.value} value={lang.value} className="text-left ">
-              {lang.label} ({lang.value})
+              {lang.label}
             </option>
           ))}
         </select>

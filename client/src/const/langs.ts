@@ -1,16 +1,15 @@
 export const languages = [
-  {label: "English", value: "en"},
-  {label: "Hindi", value: "hi"},
-  {label: "Spanish", value: "es"},
-  {label: "French", value: "fr"},
-  {label: "German", value: "de"},
-  {label: "Japanese", value: "ja"},
-  {label: "Chinese", value: "zh"},
-  {label: "Arabic", value: "ar"},
-  {label: "Russian", value: "ru"},
-  {label: "Portuguese", value: "pt"},
-  {label: "Telugu", value: "te"},
+  {label: "English", value: "en-US"},
+  {label: "Hindi", value: "hi-IN"},
+  {label: "Spanish", value: "es-ES"},
+  {label: "French", value: "fr-FR"},
+  {label: "German", value: "de-DE"},
+  {label: "Japanese", value: "ja-JP"},
+  {label: "Chinese", value: "zh-CN"},
+  {label: "Arabic", value: "ar-SA"},
+  {label: "Russian", value: "ru-RU"},
+  {label: "Portuguese", value: "pt-BR"},
+  {label: "Telugu", value: "te-IN"},
 ];
 
 export const LANGUAGES = languages.map((lang) => lang.label);
-

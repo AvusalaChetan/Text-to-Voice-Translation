@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 UI.png
+.env
+.env.local
+node_modules/
+dist/

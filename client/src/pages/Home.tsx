@@ -1,157 +1,121 @@
 import {useEffect, useRef, useState} from "react";
 import {io, Socket} from "socket.io-client";
+import TranslationFeat from "../components/feature/TranslationFeat";
 import MicroPhone from "../components/MicroPhone";
 import SelectLang from "../components/SelectLang";
 import Transcript from "../components/Transcript";
 import {COLORS} from "../const/colors";
-import {AUDIO_MESSAGE} from "../const/events";
+import {ERROR_MESSAGE, TRANSCRIPT} from "../const/events";
+import Heading from "../components/Heading";
 
 const Home = () => {
-  const [sourceLanguage, setSourceLanguage] = useState<string>("English");
-  const [targetLanguage, setTargetLanguage] = useState<string>("Hindi");
+  const [sourceLanguage, setSourceLanguage] = useState<string>("");
+  const [targetLanguage, setTargetLanguage] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
-  const [url, setUrl] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [transcript, setTranscript] = useState<string>(
-    "Namaste, how may I assist you today?",
+    "your translated text will appear here",
   );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Use refs to persist across renders (don't reset on every render)
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<BlobPart[]>([]);
-  const streamRef = useRef<MediaStream | null>(null);
   const socketRef = useRef<Socket | null>(null);
-
-  async function startRecording(): Promise<void> {
-    try {
-      // If already listening, stop recording
-      if (isListening && mediaRecorderRef.current) {
-        mediaRecorderRef.current.stop();
-        setIsListening(false);
-        return;
-      }
-
-      // Get microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-      streamRef.current = stream;
-
-      // Create MediaRecorder instance and setting in ref --> mediaRecorderRef
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-      // stop function
-      mediaRecorder.onstop = async () => {
-        //important to create blob here to capture all chunks
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/wav",
-        });
-        console.log("Recording stopped, audio blob created:", audioBlob);
-
-        const buffer = await audioBlob.arrayBuffer();
-        
-        const payload = {
-          buffer,
-          mimeType: "audio/wav",
-          sourceLanguage,
-          targetLanguage,
-        };
-        socketRef.current?.emit(AUDIO_MESSAGE, payload);
-        console.log("buffer sent via socket:", buffer);
-
-        const audioUrl = URL.createObjectURL(audioBlob);
-        setUrl(audioUrl);
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach((track) => track.stop());
-        }
-      };
-
-      mediaRecorder.start();
-      setIsListening(true);
-    } catch (error) {
-      alert("Error accessing microphone: " + (error as Error).message);
-      setIsListening(false);
-    }
-  }
+  const {startRecording} = TranslationFeat({
+    isListening,
+    setIsListening,
+    sourceLanguage,
+    targetLanguage,
+    setError,
+    socketRef,
+    setIsLoading,
+  });
 
   useEffect(() => {
     socketRef.current = io("http://localhost:8080");
 
-    socketRef.current.on("transcript", ({transcript}) => {
+    socketRef.current.on(TRANSCRIPT, ({transcript}) => {
       console.log("Received", transcript);
       if (!transcript) console.log("transcript is empty");
       setTranscript(transcript);
     });
-    socketRef.current.on("connect_error", (err) => {
+    socketRef.current.on(ERROR_MESSAGE, (err) => {
       console.error("Connection error:", err);
       setError("Connection error: " + err.message);
     });
 
     return () => {
-      socketRef.current?.off("transcript");
-      socketRef.current?.off("connect_error");
+      socketRef.current?.off(TRANSCRIPT);
+      socketRef.current?.off(ERROR_MESSAGE);
       socketRef.current?.disconnect();
     };
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-5 h-full px-5 ">
-      {/* Title Section */}
-      <div className="text-center mt-5">
-        <h1
-          className="text-4xl font-bold mb-2.5 tracking-wider"
-          style={{
-            color: COLORS.text.primary,
-          }}
-        >
-          V2V Translate
-        </h1>
-        <p
-          className="text-base font-light"
-          style={{
-            color: COLORS.text.secondary,
-          }}
-        >
-          Powered by Gemini 2.5 Live
-        </p>
+    <div className="h-screen w-full overflow-y-auto overflow-x-hidden">
+      <div className="min-h-screen flex flex-col items-center justify-start gap-6 px-4 py-8 sm:px-6 md:px-8">
+        <Heading />
+
+        <div className="w-full max-w-3xl">
+          <SelectLang
+            sourceLanguage={sourceLanguage}
+            setSourceLanguage={setSourceLanguage}
+            targetLanguage={targetLanguage}
+            setTargetLanguage={setTargetLanguage}
+          />
+        </div>
+
+        <div className="flex flex-col items-center gap-4 my-6">
+          <MicroPhone
+            isListening={isListening}
+            setIsListening={setIsListening}
+            onclick={startRecording}
+          />
+        </div>
+
+        {error && (
+          <p className="text-red-400 text-sm px-4 py-2 bg-red-900/20 rounded-lg border border-red-500/30">
+            {error}
+          </p>
+        )}
+
+        {isLoading && isListening && (
+          <p className="text-blue-400 text-sm px-4 py-2 bg-blue-900/20 rounded-lg border border-blue-500/30">
+            Processing speech...
+          </p>
+        )}
+
+        <div className="w-full max-w-3xl mb-8">
+          <Transcript transcript={transcript} />
+        </div>
+
+        <div className="fixed bottom-4 right-4 flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect width="24" height="24" rx="4" fill="#00d4ff" />
+            <text
+              x="50%"
+              y="50%"
+              dominantBaseline="middle"
+              textAnchor="middle"
+              fill="white"
+              fontSize="14"
+              fontWeight="bold"
+            >
+              L
+            </text>
+          </svg>
+          <span
+            className="text-sm font-medium"
+            style={{color: COLORS.text.secondary}}
+          >
+            Lingo.dev
+          </span>
+        </div>
       </div>
-
-      {/* Language Selection */}
-      <SelectLang
-        sourceLanguage={sourceLanguage}
-        setSourceLanguage={setSourceLanguage}
-        targetLanguage={targetLanguage}
-        setTargetLanguage={setTargetLanguage}
-      />
-
-      {/* Microphone Button */}
-      <MicroPhone
-        isListening={isListening}
-        setIsListening={setIsListening}
-        onclick={startRecording}
-      />
-
-      {/* Audio Playback */}
-      {url && (
-        <audio
-          controls
-          src={url}
-          className="w-full max-w-md  rounded-lg p-2 h-12 "
-          style={{
-            // borderColor: COLORS.border.primary,
-            backgroundColor: `rgba(0, 212, 255, 0.05)`,
-          }}
-        />
-      )}
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-
-      {/* Transcript Display/// */}
-      <Transcript transcript={transcript} />
     </div>
   );
 };
