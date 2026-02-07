@@ -1,145 +1,86 @@
-# Voice-to-Voice Translation App
+#  Text to Voice Translation 
 
-Real-time voice translation application using Web Speech API and AI translation services.
+Real-time text translation app built for a Lingo.dev hackathon. The client sends typed text over Socket.IO to a Node/Express server, which calls the Lingo.dev SDK and returns the translated text. The client can also read the translated text aloud with the Web Speech API.
 
 ## Features
 
-- 🎤 **Continuous voice recording** - Speak for unlimited duration
-- 🌐 **Multi-language support** - Translate between multiple languages
-- ⚡ **Real-time translation** - Instant translation via WebSocket
-- 🔄 **Auto-restart** - Overcomes browser speech recognition timeouts
-- 💡 **Smart error handling** - Graceful fallbacks and error recovery
+- Text input to backend translation over Socket.IO
+- Source/target language selection
+- Live transcript display
+- Text-to-speech playback using the Web Speech API
 
 ## Tech Stack
 
-### Client
-
-- React 19 + TypeScript
-- Vite
-- Tailwind CSS 
+Client:
+- React + TypeScript + Vite
+- Tailwind CSS
 - Socket.IO Client
-- Web Speech API
 
-### Server
-
-- Node.js + Express
-- TypeScript
+Server:
+- Node.js + Express + TypeScript
 - Socket.IO
-- Lingo.dev SDK for translation
+- Lingo.dev SDK
+
+## Project Structure
+
+```
+client/   # React UI
+server/   # Express + Socket.IO + Lingo.dev
+```
+
+## Prerequisites
+
+- Node.js 
+- Lingo.dev API key
 
 ## Setup
 
-### Prerequisites
+1) Install dependencies
 
-- Node.js 18+
-- Lingo.dev API key
+```bash
+cd server
+npm install
 
-### Installation
+cd ../client
+npm install
+```
 
-1. **Clone and install dependencies:**
+2) Configure environment variables
 
-   ```bash
-   # Install server dependencies
-   cd server
-   npm install
+```bash
+cd server
+cp .env.example .env
+```
 
-   # Install client dependencies
-   cd ../client
-   npm install
-   ```
+Set `LINGODOTDEV_API_KEY` in `server/.env`.
 
-2. **Configure environment variables:**
+3) Run the app
 
-   ```bash
-   # Server configuration
-   cd server
-   cp .env.example .env
-   # Edit .env and add your LINGODOTDEV_API_KEY
-   ```
+```bash
+# terminal 1
+cd server
+npm run dev
 
-3. **Run the application:**
+# terminal 2
+cd client
+npm run dev
+```
 
-   **Terminal 1 - Server:**
-
-   ```bash
-   cd server
-   npm run dev
-   ```
-
-   **Terminal 2 - Client:**
-
-   ```bash
-   cd client
-   npm run dev
-   ```
-
-4. **Open browser:**
-   Navigate to `http://localhost:5173`
+Open `http://localhost:5173` in your browser.
 
 ## Usage
 
-1. Select source language (language you'll speak)
-2. Select target language (language you want to translate to)
-3. Click the microphone button to start recording
-4. Speak continuously - the app will keep listening
-5. Click the microphone again to stop
-6. View translated text in real-time
+1) Choose source and target languages.
+2) Enter text and press Enter or click Translate.
+3) Read the translated text in the transcript panel.
+4) Click Speak to play the translated text.
 
-## How It Works
+## Notes
 
-### Continuous Listening Solution
-
-The Web Speech API has a built-in timeout (~4-5 seconds of silence). This app overcomes it by:
-
-1. **Auto-restart mechanism**: Detects when recognition ends unexpectedly and automatically restarts it
-2. **State tracking**: Uses refs to track if user wants to keep listening vs. browser timeout
-3. **Interim results**: Processes speech in real-time chunks for better responsiveness
-4. **Error handling**: Gracefully handles `no-speech` and `aborted` errors
-
-### Architecture
-
-```
-Client                  Server
-  │                       │
-  ├─ Speech Recognition   │
-  │  (Web Speech API)     │
-  │                       │
-  ├─ Socket.IO Client ────┼──> Socket.IO Server
-  │  (emit: TEXT)         │    (on: TEXT)
-  │                       │
-  │  (on: TRANSCRIPT) <───┼──  Lingo.dev Translation
-  │                       │
-  └─ UI Display          └──> Response
-```
-
-## Known Issues & Limitations
-
-- **Browser compatibility**: Web Speech API works best in Chrome/Edge
-- **Microphone permissions**: Browser will request microphone access
-- **Network dependency**: Requires active internet for translation API
-- **Language support**: Limited by Web Speech API and translation service
-
-## Troubleshooting
-
-**Recognition stops after 4 seconds:**
-
-- Fixed by auto-restart mechanism - should now work continuously
-
-**"Microphone not detected" error:**
-
-- Grant microphone permissions in browser
-- Check if microphone is connected and working
-
-**Translation not working:**
-
-- Verify `LINGODOTDEV_API_KEY` is set correctly
-- Check server console for errors
-- Ensure Socket.IO connection is established
-
-## License
-
-MIT
+- Text-to-speech uses the browser Web Speech API, so voice availability depends on the browser and OS.
+- Translation is powered by Lingo.dev via the server.
 
 ## Credits
 
-Built with ❤️ using modern web technologies
+- Built for the Lingo.dev hackathon.
+- UI direction and styling assistance provided by GitHub Copilot (GPT-5.2-Codex).

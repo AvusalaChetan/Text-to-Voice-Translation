@@ -1,75 +1,91 @@
-import {type JSX, useState} from "react";
-import {COLORS} from "../const/colors";
+import {type JSX, useEffect, useState} from "react";
 
-const Transcript = ({transcript}: {transcript: string}): JSX.Element => {
+const Transcript = ({transcript,targetLanguage}: {transcript: string,targetLanguage:string}): JSX.Element => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const handleSpeak = () => {
+    const trimmed = transcript.trim();
+    if (!trimmed) {
+      setSpeechError("Nothing to read yet.");
+      return;
+    }
+    if (!("speechSynthesis" in window)) {
+      setSpeechError("Speech Synthesis is not supported in this browser.");
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(trimmed);
+    utterance.lang = targetLanguage
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setSpeechError("Speech synthesis failed.");
+    };
+
+    setSpeechError(null);
+    setIsSpeaking(true);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleStop = () => {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
+  };
 
   return (
-    <div
-      className="w-full p-4 sm:p-6 border-2 rounded-lg shadow-lg transition-all duration-150"
-      style={{
-        borderColor: COLORS.border.primary,
-        backgroundColor: "rgba(0, 212, 255, 0.05)",
-      }}
-    >
-      <div className="flex justify-between items-center mb-4">
-        <label
-          className="text-xs sm:text-sm font-bold tracking-wider uppercase"
-          style={{
-            color: COLORS.text.muted,
-          }}
-        >
-          LIVE TRANSCRIPT
-        </label>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="p-2 rounded-full hover:bg-cyan-500/10 transition duration-150"
-          style={{
-            color: COLORS.accent.cyan,
-            transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 0.3s ease",
-          }}
-          aria-label={isExpanded ? "Collapse transcript" : "Expand transcript"}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+    <div className="w-full rounded-3xl border border-white/10 bg-black/40 p-5 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur">
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-white/50">
+            Translated output
+          </span>
+          <span className="text-lg font-semibold text-white">Preview</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={isSpeaking ? handleStop : handleSpeak}
+            className="h-10 rounded-full border border-white/10 bg-white/10 px-4 text-xs font-semibold uppercase tracking-[0.2em] text-white/70 transition hover:bg-white/20"
           >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </button>
+            {isSpeaking ? "Stop" : "Speak"}
+          </button>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="h-10 w-10 rounded-full border border-white/10 bg-white/10 text-white/70 transition hover:bg-white/20"
+            aria-label={
+              isExpanded ? "Collapse transcript" : "Expand transcript"
+            }
+          >
+            {isExpanded ? "-" : "+"}
+          </button>
+        </div>
       </div>
 
       {isExpanded && (
-        <div className="flex justify-between items-start gap-3">
-          <p
-            className="text-sm sm:text-base leading-relaxed flex-1"
-            style={{
-              color: COLORS.text.cyan,
-              lineHeight: "1.6",
-            }}
-          >
+        <div className="mt-4 flex flex-col gap-4">
+          <p className="text-sm sm:text-base leading-relaxed text-white/80">
             {transcript}
           </p>
-
-          <button
-            className="cursor-pointer flex items-center gap-1 p-2 rounded-lg hover:bg-cyan-500/10 transition duration-150 flex-shrink-0"
-            style={{
-              color: COLORS.accent.cyan,
-            }}
-            aria-label="Play audio"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            <span className="text-sm hidden sm:inline">Play</span>
-          </button>
+          {speechError && (
+            <p className="text-xs text-rose-200">{speechError}</p>
+          )}
+          <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/40">
+            <span>Streaming</span>
+            <span>{transcript.length} chars</span>
+          </div>
         </div>
       )}
     </div>

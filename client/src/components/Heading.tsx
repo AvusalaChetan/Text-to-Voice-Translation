@@ -1,24 +1,17 @@
-import {COLORS} from "../const/colors";
-
 const Heading = () => {
   return (
-    <div className="text-center mt-4 mb-2">
-      <h1
-        className="text-4xl sm:text-5xl md:text-6xl font-bold mb-2 tracking-wider"
-        style={{
-          color: COLORS.text.primary,
-        }}
-      >
-        V2V Translate
-      </h1>
-      <p
-        className="text-sm sm:text-base font-light"
-        style={{
-          color: COLORS.text.secondary,
-        }}
-      >
-      version 1.0.0 - Real-time Voice-to-Voice Translation App
-      </p>
+    <div className="flex flex-col gap-4">
+      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-white/60">
+        Live text translation
+      </div>
+      <div className="flex flex-col gap-3">
+        <h1
+          className="text-4xl sm:text-5xl md:text-6xl font-semibold leading-tight text-white"
+          style={{fontFamily: '"Fraunces", serif'}}
+        >
+          Text to Voice Translate
+        </h1>
+      </div>
     </div>
   );
 };

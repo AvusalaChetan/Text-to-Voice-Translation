@@ -1,12 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import speech from "@google-cloud/speech";
 import express from "express";
 import { createServer } from "http";
 import type { Socket } from "socket.io";
 import { Server } from "socket.io";
-import { ERROR_MESSAGE, TEXT, TRANSCRIPT } from "./const/event.js";
+import { CONNECT, DISCONNECT, ERROR_MESSAGE, TEXT, TRANSCRIPT } from "./const/event.js";
 import { translate } from "./translate.js";
 
 const app = express();
@@ -20,9 +19,10 @@ const io = new Server(server, {
   },
 });
 
-const client = new speech.SpeechClient();
 
-io.on("connection", (socket: Socket) => {
+// EVENTS are comming from src\const\event.ts
+
+io.on(CONNECT, (socket: Socket) => {
   console.log("connected", socket.id);
 
   socket.on(TEXT, async (payload) => {
@@ -39,7 +39,6 @@ io.on("connection", (socket: Socket) => {
           sourceLanguage,
           targetLanguage,
         );
-        console.log("Translated text:", translatedText);
         socket.emit(TRANSCRIPT, {transcript: translatedText});
       } else {
         console.log('error no text ')
@@ -47,13 +46,13 @@ io.on("connection", (socket: Socket) => {
       }
     } catch (error) {
       console.error("Error:", error);
-      socket.emit("error", {
+      socket.emit(ERROR_MESSAGE, {
         message: "Processing failed: " + (error as Error).message,
       });
     }
   });
 
-  socket.on("disconnect", () => console.log("disconnect", socket.id));
+  socket.on(DISCONNECT, () => console.log("disconnect", socket.id));
 });
 
 server.listen(PORT, () => console.log("Server running on port 8080"));

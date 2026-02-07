@@ -1,140 +1,68 @@
-import React, {type JSX} from "react";
-import {COLORS} from "../const/colors";
+import {useState, type JSX} from "react";
+
+type MicroPhoneProps = {
+  onSubmitText: (text: string) => void;
+  isSending: boolean;
+};
 
 const MicroPhone = ({
-  isListening,
-  setIsListening,
-  onclick,
-}: {
-  isListening: boolean;
-  setIsListening: React.Dispatch<React.SetStateAction<boolean>>;
-  onclick: () => void;
-}): JSX.Element => {
+  onSubmitText,
+  isSending,
+}: MicroPhoneProps): JSX.Element => {
+  const [sourceText, setSourceText] = useState("");
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  const handleSubmit = () => {
+    const trimmed = sourceText.trim();
+
+    if (!trimmed || isSending) {
+      setHasInteracted(true);
+      return;
+    }
+    onSubmitText(trimmed);
+    setSourceText("");
+    setHasInteracted(false);
+  };
+
+  const hasError = hasInteracted && sourceText.trim().length === 0;
+
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="relative flex items-center justify-center gap-8">
-        <div className="flex items-center gap-1">
-          {[20, 35, 45, 30, 25, 40, 35, 20].map((height, idx) => (
-            <div
-              key={`left-${idx}`}
-              className="w-1 bg-gradient-to-t from-pink-500/40 to-pink-500/80 rounded-full transition-all duration-300"
-              style={{
-                height: isListening ? `${height}px` : "15px",
-                animation: isListening
-                  ? `wave 1s ease-in-out ${idx * 0.1}s infinite alternate`
-                  : "none",
-              }}
-            />
-          ))}
+    <div className="flex w-full flex-col gap-4">
+      <div className="relative rounded-3xl border border-white/10 bg-black/40 p-4 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur">
+        <div className="absolute -top-3 left-6 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-white/60">
+          Text input
         </div>
-
-        {/* Microphone with Glow Rings */}
-        <div className="relative flex items-center justify-center">
-          {isListening && (
-            <div
-              className="absolute w-48 h-48 rounded-full border-4 opacity-60"
-              style={{
-                borderColor: "#ff1b6b",
-                boxShadow:
-                  "0 0 60px rgba(255, 27, 107, 0.6), inset 0 0 60px rgba(255, 27, 107, 0.3)",
-                animation: "pulse-ring 2s ease-in-out infinite",
-              }}
-            />
-          )}
-
-          {/* Middle Ring */}
-          {isListening && (
-            <div
-              className="absolute w-36 h-36 rounded-full border-4 opacity-80"
-              style={{
-                borderColor: "#ff1b6b",
-                boxShadow: "0 0 40px rgba(255, 27, 107, 0.7)",
-                animation: "pulse-ring 2s ease-in-out 0.3s infinite",
-              }}
-            />
-          )}
-
-          {/* Microphone Button */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <input
+            type="text"
+            value={sourceText}
+            onChange={(e) => setSourceText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSubmit();
+              }
+            }}
+            placeholder="Write a sentence to translate"
+            className="h-12 w-full rounded-2xl border border-transparent bg-white/90 px-4 text-sm text-black placeholder:text-black/50 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            aria-invalid={hasError}
+          />
           <button
-            onClick={() => {
-              setIsListening(!isListening);
-              onclick();
-            }}
-            className="relative z-10 w-28 h-28 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95"
-            style={{
-              backgroundColor: isListening ? "#1a0a1f" : "#1e293b",
-              boxShadow: isListening
-                ? "0 0 40px rgba(255, 27, 107, 0.8), inset 0 0 30px rgba(255, 27, 107, 0.2)"
-                : "0 0 20px rgba(0, 212, 255, 0.3)",
-            }}
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSending}
+            className="h-12 shrink-0 rounded-2xl bg-amber-300 px-5 text-sm font-semibold uppercase tracking-wide text-black shadow-[0_12px_30px_-16px_rgba(251,191,36,0.9)] transition hover:-translate-y-0.5 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {/* Microphone Icon */}
-            <svg
-              width="50"
-              height="50"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 1C10.34 1 9 2.34 9 4V12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12V4C15 2.34 13.66 1 12 1Z"
-                fill={isListening ? "#ff1b6b" : COLORS.text.primary}
-                stroke={isListening ? "#ff1b6b" : COLORS.text.primary}
-                strokeWidth="1.5"
-              />
-              <path
-                d="M19 10V12C19 15.866 15.866 19 12 19C8.134 19 5 15.866 5 12V10"
-                stroke={isListening ? "#ff1b6b" : COLORS.text.primary}
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M12 19V23M8 23H16"
-                stroke={isListening ? "#ff1b6b" : COLORS.text.primary}
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
+            {isSending ? "Sending" : "Translate"}
           </button>
         </div>
-
-        {/* Right Sound Waves */}
-        <div className="flex items-center gap-1">
-          {[25, 40, 30, 45, 35, 20, 30, 25].map((height, idx) => (
-            <div
-              key={`right-${idx}`}
-              className="w-1 bg-gradient-to-t from-pink-500/40 to-pink-500/80 rounded-full transition-all duration-300"
-              style={{
-                height: isListening ? `${height}px` : "15px",
-                animation: isListening
-                  ? `wave 1s ease-in-out ${idx * 0.1}s infinite alternate`
-                  : "none",
-              }}
-            />
-          ))}
-        </div>
+        {hasError && (
+          <p className="mt-3 text-xs text-rose-200">Add text before sending.</p>
+        )}
       </div>
-
-      {/* Listening Status */}
-      <p
-        className="text-base font-light"
-        style={{color: COLORS.text.secondary}}
-      >
-        {isListening ? "Listening..." : "Click to start"}
-      </p>
-
-      {/* CSS Animations */}
-      <style>{`
-        @keyframes pulse-ring {
-          0%, 100% { transform: scale(1); opacity: 0.6; }
-          50% { transform: scale(1.05); opacity: 0.8; }
-        }
-        
-        @keyframes wave {
-          0% { transform: scaleY(0.5); opacity: 0.5; }
-          100% { transform: scaleY(1); opacity: 1; }
-        }
-      `}</style>
+      <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-white/50">
+        <span>Press Enter to send</span>
+        <span>{sourceText.length} chars</span>
+      </div>
     </div>
   );
 };
