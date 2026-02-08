@@ -17,6 +17,11 @@ import {translate} from "./translate.js";
 const app = express();
 
 const PORT = process.env.PORT || 8080;
+
+app.get("/", (req, res) => {
+  return res.status(200).json({message: "every thing working fine "});
+});
+
 const server = createServer(app);
 
 const clientOrigin = process.env.CLIENT_ORIGIN;
@@ -25,9 +30,6 @@ const io = new Server(server, {
   cors: {
     origin: ["http://localhost:5173", ...(clientOrigin ? [clientOrigin] : [])],
   },
-});
-app.get("/", (req, res) => {
-  return res.status(200).json({message: "every thing working fine "});
 });
 
 // EVENTS are comming from src\const\event.ts
