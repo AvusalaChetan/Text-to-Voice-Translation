@@ -25,10 +25,18 @@ app.get("/", (req, res) => {
 const server = createServer(app);
 
 const clientOrigin = process.env.CLIENT_ORIGIN;
+const allowedOrigins = [
+  "http://localhost:5173",
+  ...(clientOrigin ? clientOrigin.split(',') : [])
+];
+
+console.log(clientOrigin)
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", ...(clientOrigin ? [clientOrigin] : [])],
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
   },
 });
 
